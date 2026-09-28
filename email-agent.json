@@ -1,0 +1,238 @@
+{
+  "name": "Email Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "authentication": "basicAuth",
+        "initialMessages": "Hi there! 👋\n\nI'm Tron's Email Agent. Tell me who to email and what to say.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4ae48925-afe3-41bc-a31e-214864b0f38e",
+      "name": "When chat message received",
+      "webhookId": "b9ee2f71-c9c0-4bb4-a42f-10dedf10d3f2",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "wb07Eprg1UAuflf5",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "You are a helpful assistant who helps craft effective and succinct emails based on the user's instructions. When the user names a recipient without giving an email address, ALWAYS search the Pinecone Vector Store contacts tool with that person's name first. Each result looks like 'Name: X | Email: Y' - only use the email from the result whose Name matches the recipient. Ask the user for the email only if no matching name is found. Then draft the email and send it using the Gmail tool."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "8947d7ff-bf2b-42e3-8366-2a754f5fedde",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        208
+      ],
+      "id": "f8dde214-d4e7-44c9-af93-ee9c6e11318a",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "ImjGjWXSonlX5ViZ",
+          "name": "OpenAI account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        240,
+        208
+      ],
+      "id": "6323f853-ba19-49fd-a5c6-f68c81ff0d5a",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        384,
+        208
+      ],
+      "id": "563b29d5-7493-462e-a3ab-5f52416db66a",
+      "name": "Send a message in Gmail",
+      "webhookId": "707496e7-839a-43a0-8d24-4e7ec9a3f311",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0TFvXboznkANBC0C",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Use this to find a contact's email address. Search by the person's name. Each result is formatted as 'Name: X | Email: Y'. Only use an email that appears in the same result as the name.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "technoelogy",
+          "mode": "list",
+          "cachedResultName": "technoelogy"
+        },
+        "options": {
+          "pineconeNamespace": "Contacts"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        592,
+        208
+      ],
+      "id": "ce2985c1-bcb5-4086-a748-9e3eb291a816",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "CUvzHiXzUrIYwlV4",
+          "name": "Pinecone account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        608,
+        432
+      ],
+      "id": "0a735c3e-388d-4cec-a464-51f4e82491f1",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "ImjGjWXSonlX5ViZ",
+          "name": "OpenAI account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f221b112-460c-499a-8c27-012297e36f9b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "273d8d80b6c6b32c34f94ac35e411edd06d5e6d9b5a0409cc6c16d1f63944003"
+  },
+  "nodeGroups": [],
+  "id": "agxdDoBKOyPVh4UW",
+  "tags": []
+}
